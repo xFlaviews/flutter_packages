@@ -443,21 +443,15 @@ public class SocialShareUtil {
 
     public void shareTextToFacebook(String text, Activity activity, MethodChannel.Result result) {
         try {
-            // Use the same pattern as other sharing methods
-            Map<String, Boolean> apps = getInstalledApps(activity);
-            String packageName;
-            if (apps.get("facebook")) {
-                packageName = FACEBOOK_PACKAGE;
-            } else if (apps.get("facebook-lite")) {
-                packageName = FACEBOOK_LITE_PACKAGE;
-            } else {
-                result.success(ERROR_APP_NOT_AVAILABLE);
-                return;
-            }
+            // Debug logging
+            System.out.println("shareTextToFacebook called with text: " + text);
             
-            String shareResult = shareTextToPackage(text, activity, packageName);
+            // Use the exact same pattern as Instagram Direct (which works)
+            String shareResult = shareTextToPackage(text, activity, FACEBOOK_PACKAGE);
+            System.out.println("shareTextToPackage result: " + shareResult);
             result.success(shareResult);
         } catch (Exception e) {
+            System.out.println("shareTextToFacebook error: " + e.getLocalizedMessage());
             result.success(e.getLocalizedMessage());
         }
     }
