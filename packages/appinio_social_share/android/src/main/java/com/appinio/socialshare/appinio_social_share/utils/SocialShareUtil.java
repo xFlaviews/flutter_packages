@@ -441,15 +441,40 @@ public class SocialShareUtil {
     }
 
 
-    public void shareTextToFacebook(String text, Activity activity, MethodChannel.Result result) {
+    public void shareTextToFacebook(String url, Activity activity, MethodChannel.Result result) {
         try {
             // Debug logging
-            System.out.println("shareTextToFacebook called with text: " + text);
+            System.out.println("shareTextToFacebook called with URL: " + url);
             
-            // Use the exact same pattern as Instagram Direct (which works)
-            String shareResult = shareTextToPackage(text, activity, FACEBOOK_PACKAGE);
-            System.out.println("shareTextToPackage result: " + shareResult);
-            result.success(shareResult);
+            // Facebook only accepts URLs, ensure it starts with http/https
+            String shareUrl = url;
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                shareUrl = "https://" + url;
+                System.out.println("Added https prefix: " + shareUrl);
+            }
+            
+            // Use Facebook-specific Intent (Facebook only accepts URLs)
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TEXT, shareUrl);
+            intent.setPackage(FACEBOOK_PACKAGE);
+            
+            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                activity.startActivity(intent);
+                result.success(SUCCESS);
+                System.out.println("Facebook Intent launched successfully");
+            } else {
+                // Try Facebook Lite
+                intent.setPackage(FACEBOOK_LITE_PACKAGE);
+                if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                    activity.startActivity(intent);
+                    result.success(SUCCESS);
+                    System.out.println("Facebook Lite Intent launched successfully");
+                } else {
+                    result.success(ERROR_APP_NOT_AVAILABLE);
+                    System.out.println("No Facebook app available");
+                }
+            }
         } catch (Exception e) {
             System.out.println("shareTextToFacebook error: " + e.getLocalizedMessage());
             result.success(e.getLocalizedMessage());

@@ -591,43 +591,31 @@ public class ShareUtil{
     public func shareTextToFacebook(args : [String: Any?],result: @escaping FlutterResult){
         let message = args[self.argMessage] as? String
         
-        guard let text = message else {
+        guard var urlString = message else {
             result(ERROR)
             return
         }
         
-        // Try Facebook URL schemes (same pattern as WhatsApp)
-        let facebookUrls = [
-            "facebook://share?text=\(text)",
-            "fb://feed/compose/?text=\(text)", 
-            "fb://publish?text=\(text)"
-        ]
-        
-        var characterSet = CharacterSet.urlQueryAllowed
-        characterSet.insert(charactersIn: "?&")
-        
-        for urlString in facebookUrls {
-            if let encodedString = urlString.addingPercentEncoding(withAllowedCharacters: characterSet),
-               let facebookURL = URL(string: encodedString) {
-                
-                if UIApplication.shared.canOpenURL(facebookURL) {
-                    UIApplication.shared.open(facebookURL, options: [:], completionHandler: { success in
-                        if success {
-                            result(self.SUCCESS)
-                        } else {
-                            result(self.ERROR)
-                        }
-                    })
-                    return
-                }
-            }
+        // Ensure URL has proper prefix for Facebook
+        if !urlString.hasPrefix("http://") && !urlString.hasPrefix("https://") {
+            urlString = "https://" + urlString
         }
         
-        // If no Facebook URL schemes work, fallback to system share
-        let activityViewController = UIActivityViewController(activityItems: [text], applicationActivities: nil)
-        UIApplication.topViewController()?.present(activityViewController, animated: true, completion: {
-            result(self.SUCCESS)
-        })
+        print("Sharing URL to Facebook: \(urlString)")
+        
+        // Facebook only accepts URLs via system share on iOS
+        // Direct URL schemes for posting are deprecated/blocked
+        let activityViewController = UIActivityViewController(activityItems: [urlString], applicationActivities: nil)
+        
+        // Prefer Facebook if available
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.rootViewController?.present(activityViewController, animated: true, completion: {
+                result(self.SUCCESS)
+            })
+        } else {
+            result(self.ERROR)
+        }
     }
     
 }
