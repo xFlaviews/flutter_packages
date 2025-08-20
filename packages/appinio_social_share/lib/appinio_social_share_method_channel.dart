@@ -12,6 +12,7 @@ class MethodChannelAppinioSocialShare extends AppinioSocialSharePlatform {
   final String instagramFeedFiles = "instagram_post_files";
   final String instagramStories = "instagram_stories";
   final String facebook = "facebook";
+  final String facebookText = "facebook_text";
   final String messenger = "messenger";
   final String facebookStories = "facebook_stories";
   final String whatsapp = "whatsapp";
@@ -285,6 +286,13 @@ class MethodChannelAppinioSocialShare extends AppinioSocialSharePlatform {
   Future<String> shareToFacebook(String hashtag, List<String> filePaths) async {
     return ((await methodChannel.invokeMethod<String>(
             facebook, {"imagePaths": filePaths, "message": hashtag})) ??
+        "");
+  }
+
+  @override
+  Future<String> shareTextToFacebook(String text) async {
+    return ((await methodChannel.invokeMethod<String>(
+            facebookText, {"message": text})) ??
         "");
   }
 }

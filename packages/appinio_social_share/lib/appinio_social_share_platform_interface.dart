@@ -77,6 +77,10 @@ abstract class AppinioSocialSharePlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
+  Future<String> shareTextToFacebook(String text) {
+    throw UnimplementedError('shareTextToFacebook() has not been implemented.');
+  }
+
   Future<String> shareToInstagramStory(String appId,
       {String? stickerImage,
       String? backgroundImage,

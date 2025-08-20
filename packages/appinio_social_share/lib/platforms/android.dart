@@ -58,6 +58,10 @@ class Android {
         .shareToFacebook(hashtag, filePaths);
   }
 
+  Future<String> shareTextToFacebook(String text) {
+    return AppinioSocialSharePlatform.instance.shareTextToFacebook(text);
+  }
+
   Future<String> shareToInstagramStory(String appId,
       {String? stickerImage,
       String? backgroundImage,

@@ -441,6 +441,31 @@ public class SocialShareUtil {
     }
 
 
+    public void shareTextToFacebook(String text, Activity activity, MethodChannel.Result result) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TEXT, text);
+            intent.setPackage(FACEBOOK_PACKAGE);
+            
+            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                activity.startActivity(intent);
+                result.success(SUCCESS);
+            } else {
+                // Try Facebook Lite as fallback
+                intent.setPackage(FACEBOOK_LITE_PACKAGE);
+                if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                    activity.startActivity(intent);
+                    result.success(SUCCESS);
+                } else {
+                    result.success(ERROR_APP_NOT_AVAILABLE);
+                }
+            }
+        } catch (Exception e) {
+            result.success(e.getLocalizedMessage());
+        }
+    }
+
     String getFacebookAppId(Context activity) {
         String appId = "";
         try {
