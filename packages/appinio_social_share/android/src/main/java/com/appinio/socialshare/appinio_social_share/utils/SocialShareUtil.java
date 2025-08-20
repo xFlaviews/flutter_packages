@@ -443,24 +443,20 @@ public class SocialShareUtil {
 
     public void shareTextToFacebook(String text, Activity activity, MethodChannel.Result result) {
         try {
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT, text);
-            intent.setPackage(FACEBOOK_PACKAGE);
-            
-            if (intent.resolveActivity(activity.getPackageManager()) != null) {
-                activity.startActivity(intent);
-                result.success(SUCCESS);
+            // Use the same pattern as other sharing methods
+            Map<String, Boolean> apps = getInstalledApps(activity);
+            String packageName;
+            if (apps.get("facebook")) {
+                packageName = FACEBOOK_PACKAGE;
+            } else if (apps.get("facebook-lite")) {
+                packageName = FACEBOOK_LITE_PACKAGE;
             } else {
-                // Try Facebook Lite as fallback
-                intent.setPackage(FACEBOOK_LITE_PACKAGE);
-                if (intent.resolveActivity(activity.getPackageManager()) != null) {
-                    activity.startActivity(intent);
-                    result.success(SUCCESS);
-                } else {
-                    result.success(ERROR_APP_NOT_AVAILABLE);
-                }
+                result.success(ERROR_APP_NOT_AVAILABLE);
+                return;
             }
+            
+            String shareResult = shareTextToPackage(text, activity, packageName);
+            result.success(shareResult);
         } catch (Exception e) {
             result.success(e.getLocalizedMessage());
         }

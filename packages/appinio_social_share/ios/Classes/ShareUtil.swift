@@ -591,24 +591,43 @@ public class ShareUtil{
     public func shareTextToFacebook(args : [String: Any?],result: @escaping FlutterResult){
         let message = args[self.argMessage] as? String
         
-        // Try Facebook URL scheme first
-        let facebookURL = URL(string: "fb://publish/?text=\(message?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")")
-        
-        if let url = facebookURL, UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: { success in
-                if success {
-                    result(self.SUCCESS)
-                } else {
-                    result(self.ERROR)
-                }
-            })
-        } else {
-            // Fallback to system share
-            let activityViewController = UIActivityViewController(activityItems: [message ?? ""], applicationActivities: nil)
-            UIApplication.topViewController()?.present(activityViewController, animated: true, completion: {
-                result(self.SUCCESS)
-            })
+        guard let text = message else {
+            result(ERROR)
+            return
         }
+        
+        // Try Facebook URL schemes (same pattern as WhatsApp)
+        let facebookUrls = [
+            "facebook://share?text=\(text)",
+            "fb://feed/compose/?text=\(text)", 
+            "fb://publish?text=\(text)"
+        ]
+        
+        var characterSet = CharacterSet.urlQueryAllowed
+        characterSet.insert(charactersIn: "?&")
+        
+        for urlString in facebookUrls {
+            if let encodedString = urlString.addingPercentEncoding(withAllowedCharacters: characterSet),
+               let facebookURL = URL(string: encodedString) {
+                
+                if UIApplication.shared.canOpenURL(facebookURL) {
+                    UIApplication.shared.open(facebookURL, options: [:], completionHandler: { success in
+                        if success {
+                            result(self.SUCCESS)
+                        } else {
+                            result(self.ERROR)
+                        }
+                    })
+                    return
+                }
+            }
+        }
+        
+        // If no Facebook URL schemes work, fallback to system share
+        let activityViewController = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+        UIApplication.topViewController()?.present(activityViewController, animated: true, completion: {
+            result(self.SUCCESS)
+        })
     }
     
 }
